@@ -2,6 +2,9 @@
 # Build and push an image to Azure Container Registry
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
+# no PR triggers
+pr: none
+
 trigger:
 - master
 
@@ -14,7 +17,8 @@ variables:
   imageRepository: 'azure-vote-front'
   containerRegistry: 'azurevoteaksacr.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/azure-vote/Dockerfile'
-  tag: '$(Build.BuildId)'
+  tag: 'v$(Build.BuildId)'
+  imagePullSecret: 'azurevoteaksacr-auth'
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
@@ -37,3 +41,38 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
+    - upload: manifests
+      artifact: manifests
+
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy
+    pool:
+      vmImage: $(vmImageName)
+    environment: 'baliganorbiazurevotingappredis.default'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            displayName: Create imagePullSecret
+            inputs:
+              action: createSecret
+              secretName: $(imagePullSecret)
+              dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+
+          - task: KubernetesManifest@0
+            displayName: Deploy to Kubernetes cluster
+            inputs:
+              action: deploy
+              manifests: |
+                $(Pipeline.Workspace)/manifests/deployment.yml
+                $(Pipeline.Workspace)/manifests/service.yml
+              imagePullSecrets: |
+                $(imagePullSecret)
+              containers: |
+                $(containerRegistry)/$(imageRepository):$(tag)  

@@ -53,7 +53,7 @@ stages:
     displayName: Deploy
     pool:
       vmImage: $(vmImageName)
-    environment: 'baliganorbiazurevotingappredis.default'
+    environment: 'AzureVoteAKS.default'
     strategy:
       runOnce:
         deploy:

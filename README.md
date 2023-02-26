@@ -8,6 +8,8 @@ products:
 description: "This sample creates a multi-container application in an Azure Kubernetes Service (AKS) cluster."
 ---
 
+[![Build Status](https://dev.azure.com/forchaladtest/AzureVote/_apis/build/status/baliganorbi.azure-voting-app-redis?branchName=master)](https://dev.azure.com/forchaladtest/AzureVote/_build/latest?definitionId=4&branchName=master)
+
 # Azure Voting App
 
 This sample creates a multi-container application in an Azure Kubernetes Service (AKS) cluster. The application interface has been built using Python / Flask. The data component is using Redis.
